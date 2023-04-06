@@ -2,11 +2,10 @@
 
 import tensorflow as tf
 import numpy as np
-from tensorboard.plugins.hparams import HParams
+from tensorboard.plugins.hparams import api as hp
 
-hparams = HParams(
+_hparams = dict(
     name = "Tacotron-2",
-    
     # tacotron hyper parameter
     
     cleaners = 'korean_cleaners',  # 'korean_cleaners'   or 'english_cleaners'
@@ -64,8 +63,7 @@ hparams = HParams(
     scalar_input = True,   # input_type과 맞아야 함.
     
     
-    dilations = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512,
-                  1, 2, 4, 8, 16, 32, 64, 128, 256, 512],
+    dilations = 512,
     residual_channels = 128,
     dilation_channels = 256,
     quantization_channels = 256,
@@ -73,7 +71,7 @@ hparams = HParams(
     skip_channels = 128,
     use_biases = True,
     upsample_type = 'SubPixel',  # 'SubPixel', None   
-    upsample_factor=[12,25],   # np.prod(upsample_factor) must equal to hop_size
+    upsample_factor=25,   # np.prod(upsample_factor) must equal to hop_size
 
 
 
@@ -127,7 +125,7 @@ hparams = HParams(
     initial_data_greedy = True,
     initial_phase_step = 8000,   # 여기서 지정한 step 이전에는 data_dirs의 각각의 디렉토리에 대하여 같은 수의 example을 만들고, 이후, weght 비듈에 따라 ... 즉, 아래의 'main_data_greedy_factor'의 영향을 받는다.
     main_data_greedy_factor = 0,
-    main_data = [''],    # 이곳에 있는 directory 속에 있는 data는 가중치를 'main_data_greedy_factor' 만큼 더 준다.
+    main_data = '',    # 이곳에 있는 directory 속에 있는 data는 가중치를 'main_data_greedy_factor' 만큼 더 준다.
     prioritize_loss = False,    
     
 
@@ -155,7 +153,7 @@ hparams = HParams(
     smoothing = False, #Whether to smooth the attention normalization function
     attention_dim = 128, #dimension of attention space
     attention_filters = 32, #number of attention convolution filters
-    attention_kernel = (31, ), #kernel size of attention convolution
+    attention_kernel = 31, #kernel size of attention convolution
     cumulative_weights = True, #Whether to cumulate (sum) all previous attention weights or simply feed previous weights (Recommended: True)
 
     #Attention synthesis constraints
@@ -170,17 +168,17 @@ hparams = HParams(
 
 
     #Decoder
-    prenet_layers = [256, 256], #number of layers and number of units of prenet
+    prenet_layers = 256, #number of layers and number of units of prenet
     decoder_layers = 2, #number of decoder lstm layers
     decoder_lstm_units = 1024, #number of decoder lstm units on each layer
 
-    dec_prenet_sizes = [256, 256], #number of layers and number of units of prenet
+    dec_prenet_sizes = 256, #number of layers and number of units of prenet
 
 
 
     #Residual postnet
     postnet_num_layers = 5, #number of postnet convolutional layers
-    postnet_kernel_size = (5, ), #size of postnet convolution filters for each layer
+    postnet_kernel_size = 5, #size of postnet convolution filters for each layer
     postnet_channels = 512, #number of postnet convolution filters for each layer
 
 
@@ -191,7 +189,7 @@ hparams = HParams(
     post_maxpool_width = 2,
     post_highway_depth = 4,
     post_rnn_size = 128,
-    post_proj_sizes = [256, 80], # num_mels=80
+    post_proj_sizes = 256, # num_mels=80
     post_proj_width = 3,
 
 
@@ -208,27 +206,11 @@ hparams = HParams(
  
     griffin_lim_iters = 60,
     power = 1.5, 
- 
 )
 
-if hparams.use_lws:
-    # Does not work if fft_size is not multiple of hop_size!!
-    # sample size = 20480, hop_size=256=12.5ms. fft_size는 window_size를 결정하는데, 2048을 시간으로 환산하면 2048/20480 = 0.1초=100ms
-    hparams.sample_rate = 20480  # 
-    
-    # shift can be specified by either hop_size(우선) or frame_shift_ms
-    hparams.hop_size = 256             # frame_shift_ms = 12.5ms
-    hparams.frame_shift_ms=None      # hop_size=  sample_rate *  frame_shift_ms / 1000
-    hparams.fft_size=2048   # 주로 1024로 되어있는데, tacotron에서 2048사용==> output size = 1025
-    hparams.win_size = None # 256x4 --> 50ms
-    
-  
-    
-else:
-    # 미리 정의되 parameter들로 부터 consistant하게 정의해 준다.
-    hparams.num_freq = int(hparams.fft_size/2 + 1)
-    hparams.frame_shift_ms = hparams.hop_size * 1000.0/ hparams.sample_rate      # hop_size=  sample_rate *  frame_shift_ms / 1000
-    hparams.frame_length_ms = hparams.win_size * 1000.0/ hparams.sample_rate 
+hparams = hp.hparams(
+    hparams=_hparams
+)
 
 
 def hparams_debug_string():
