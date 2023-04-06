@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from scipy import signal
 from scipy.io import wavfile
-from tensorflow.contrib.training.python.training.hparam import HParams
+from tensorboard.plugins.hparams import api as hp
 
 
 def load_wav(path, sr):

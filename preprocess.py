@@ -12,7 +12,7 @@ import os
 from multiprocessing import cpu_count
 from tqdm import tqdm
 import importlib
-from hparams import hparams, hparams_debug_string
+from hparams import hparams
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -46,16 +46,13 @@ if __name__ == "__main__":
 
     if args.hparams is not None:
         hparams.parse(args.hparams)
-    print(hparams_debug_string())
+
 
     name = args.name
     in_dir = args.in_dir
     out_dir = args.out_dir
     num_workers = args.num_workers
     num_workers = cpu_count() if num_workers is None else int(num_workers)  # cpu_count() = process 갯수
-
-    print("Sampling frequency: {}".format(hparams.sample_rate))
-
     assert name in ["cmu_arctic", "ljspeech", "son", "moon"]
     mod = importlib.import_module('datasets.{}'.format(name))
     preprocess(mod, in_dir, out_dir, num_workers)
