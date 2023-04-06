@@ -1,11 +1,10 @@
 # coding: utf-8
 import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.rnn import RNNCell
+from tensorflow_addons.rnn import RNNCell
 from tensorflow.python.ops import rnn_cell_impl
-#from tensorflow.contrib.data.python.util import nest
-from tensorflow.contrib.framework import nest
-from tensorflow.contrib.seq2seq.python.ops.attention_wrapper import _bahdanau_score, _BaseAttentionMechanism, BahdanauAttention, \
+from tensorflow.python.util import nest
+from tensorflow_addons.seq2seq.attention_wrapper import _bahdanau_score, _BaseAttentionMechanism, BahdanauAttention, \
                              AttentionWrapperState, AttentionMechanism, _BaseMonotonicAttentionMechanism,_maybe_mask_score,_prepare_memory,_monotonic_probability_fn
 from tensorflow.python.ops import array_ops, math_ops, nn_ops, variable_scope
 from tensorflow.python.layers.core import Dense
@@ -33,7 +32,7 @@ class ZoneoutLSTMCell(RNNCell):
         if zm < 0. or zs > 1.:
             raise ValueError('One/both provided Zoneout factors are not in [0, 1]')
 
-        self._cell = tf.nn.rnn_cell.LSTMCell(num_units, state_is_tuple=state_is_tuple, name=name)
+        self._cell = tf.compat.v1.nn.rnn_cell.LSTMCell(num_units, state_is_tuple=state_is_tuple, name=name)
         self._zoneout_cell = zoneout_factor_cell
         self._zoneout_outputs = zoneout_factor_output
         self.is_training = is_training
@@ -66,14 +65,14 @@ class ZoneoutLSTMCell(RNNCell):
         #Apply zoneout
         if self.is_training:
             #nn.dropout takes keep_prob (probability to keep activations) not drop_prob (probability to mask activations)!
-            c = (1 - self._zoneout_cell) * tf.nn.dropout(new_c - prev_c, (1 - self._zoneout_cell)) + prev_c   # tf.nn.dropout outputs the input element scaled up by 1 / keep_prob
-            h = (1 - self._zoneout_outputs) * tf.nn.dropout(new_h - prev_h, (1 - self._zoneout_outputs)) + prev_h
+            c = (1 - self._zoneout_cell) * tf.nn.dropout(new_c - prev_c, rate=(1 - (1 - self._zoneout_cell))) + prev_c   # tf.nn.dropout outputs the input element scaled up by 1 / keep_prob
+            h = (1 - self._zoneout_outputs) * tf.nn.dropout(new_h - prev_h, rate=(1 - (1 - self._zoneout_outputs))) + prev_h
 
         else:
             c = (1 - self._zoneout_cell) * new_c + self._zoneout_cell * prev_c
             h = (1 - self._zoneout_outputs) * new_h + self._zoneout_outputs * prev_h
 
-        new_state = tf.nn.rnn_cell.LSTMStateTuple(c, h) if self.state_is_tuple else tf.concat(1, [c, h])
+        new_state = tf.compat.v1.nn.rnn_cell.LSTMStateTuple(c, h) if self.state_is_tuple else tf.concat(1, [c, h])
 
         return output, new_state
 
@@ -176,10 +175,10 @@ class LocationSensitiveAttention(BahdanauAttention):
                 probability_fn=normalization_function,
                 name=name)
 
-        self.location_convolution = tf.layers.Conv1D(filters=hparams.attention_filters,
+        self.location_convolution = tf.compat.v1.layers.Conv1D(filters=hparams.attention_filters,
             kernel_size=hparams.attention_kernel, padding='same', use_bias=True,
-            bias_initializer=tf.zeros_initializer(), name='location_features_convolution')
-        self.location_layer = tf.layers.Dense(units=num_units, use_bias=False,dtype=tf.float32, name='location_features_projection')
+            bias_initializer=tf.compat.v1.zeros_initializer(), name='location_features_convolution')
+        self.location_layer = tf.compat.v1.layers.Dense(units=num_units, use_bias=False,dtype=tf.float32, name='location_features_projection')
         self._cumulate = cumulate_weights
         self.synthesis_constraint = hparams.synthesis_constraint and not is_training
         self.attention_win_size = tf.convert_to_tensor(hparams.attention_win_size, dtype=tf.int32)
@@ -231,7 +230,7 @@ class LocationSensitiveAttention(BahdanauAttention):
             
             masks = tf.logical_or(key_masks, reverse_masks)
             paddings = tf.ones_like(energy) * (-2 ** 32 + 1)  # (N, Ty/r, Tx)
-            energy = tf.where(tf.equal(masks, False), energy, paddings)
+            energy = tf.compat.v1.where(tf.equal(masks, False), energy, paddings)
 
         # alignments shape = energy shape = [batch_size, max_time]
         alignments = self._probability_fn(energy, previous_alignments)
@@ -270,12 +269,12 @@ def _location_sensitive_score(W_query, W_fil, W_keys):
     dtype = W_query.dtype
     num_units = W_keys.shape[-1].value or array_ops.shape(W_keys)[-1]
 
-    v_a = tf.get_variable(
+    v_a = tf.compat.v1.get_variable(
         'attention_variable_projection', shape=[num_units], dtype=dtype,
-        initializer=tf.contrib.layers.xavier_initializer())
-    b_a = tf.get_variable(
+        initializer=tf.compat.v1.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform"))
+    b_a = tf.compat.v1.get_variable(
         'attention_bias', shape=[num_units], dtype=dtype,
-        initializer=tf.zeros_initializer())
+        initializer=tf.compat.v1.zeros_initializer())
 
     return tf.reduce_sum(v_a * tf.tanh(W_keys + W_query + W_fil + b_a), [2])
 
@@ -312,9 +311,9 @@ class GmmAttention(AttentionMechanism):
 
         self.dtype = memory.dtype
         self.num_mixtures = num_mixtures
-        self.query_layer = tf.layers.Dense(3 * num_mixtures, name='gmm_query_projection', use_bias=True, dtype=self.dtype)
+        self.query_layer = tf.compat.v1.layers.Dense(3 * num_mixtures, name='gmm_query_projection', use_bias=True, dtype=self.dtype)
 
-        with tf.name_scope(name, 'GmmAttentionMechanismInit'):
+        with tf.compat.v1.name_scope(name, 'GmmAttentionMechanismInit'):
             if score_mask_value is None:
                 score_mask_value = 0.
             self._maybe_mask_score = functools.partial(
@@ -353,7 +352,7 @@ class GmmAttention(AttentionMechanism):
         return _zero_state_tensors(state_size_, batch_size, dtype)
 
     def __call__(self, query, state):
-        with tf.variable_scope("GmmAttention"):
+        with tf.compat.v1.variable_scope("GmmAttention"):
             previous_kappa = state
             
             params = self.query_layer(query)   # query(dec_rnn_size=256) , params(num_mixtures(256)*3)

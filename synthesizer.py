@@ -34,11 +34,11 @@ from text import text_to_sequence, sequence_to_text
 from datasets.datafeeder_tacotron2 import _prepare_inputs
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-tf.logging.set_verbosity(tf.logging.ERROR)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 class Synthesizer(object):
     def close(self):
-        tf.reset_default_graph()
+        tf.compat.v1.reset_default_graph()
         self.sess.close()
 
     def load(self, checkpoint_path, num_speakers=2, checkpoint_step=None, inference_prenet_dropout=True,model_name='tacotron'):
@@ -52,16 +52,16 @@ class Synthesizer(object):
 
         print('Constructing model: %s' % model_name)
 
-        inputs = tf.placeholder(tf.int32, [None, None], 'inputs')
-        input_lengths = tf.placeholder(tf.int32, [None], 'input_lengths')
+        inputs = tf.compat.v1.placeholder(tf.int32, [None, None], 'inputs')
+        input_lengths = tf.compat.v1.placeholder(tf.int32, [None], 'input_lengths')
 
         batch_size = tf.shape(inputs)[0]
-        speaker_id = tf.placeholder_with_default(
+        speaker_id = tf.compat.v1.placeholder_with_default(
                 tf.zeros([batch_size], dtype=tf.int32), [None], 'speaker_id')
 
         load_hparams(hparams, load_path)
         hparams.inference_prenet_dropout = inference_prenet_dropout
-        with tf.variable_scope('model') as scope:
+        with tf.compat.v1.variable_scope('model') as scope:
             self.model = create_model(hparams)
 
             self.model.initialize(inputs=inputs, input_lengths=input_lengths, num_speakers=self.num_speakers, speaker_id=speaker_id,is_training=False)
@@ -69,15 +69,15 @@ class Synthesizer(object):
 
         print('Loading checkpoint: %s' % checkpoint_path)
 
-        sess_config = tf.ConfigProto(
+        sess_config = tf.compat.v1.ConfigProto(
                 allow_soft_placement=True,
                 intra_op_parallelism_threads=1,
                 inter_op_parallelism_threads=2)
         sess_config.gpu_options.allow_growth = True
 
-        self.sess = tf.Session(config=sess_config)
-        self.sess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver()
+        self.sess = tf.compat.v1.Session(config=sess_config)
+        self.sess.run(tf.compat.v1.global_variables_initializer())
+        saver = tf.compat.v1.train.Saver()
         saver.restore(self.sess, checkpoint_path)
 
     def synthesize(self,

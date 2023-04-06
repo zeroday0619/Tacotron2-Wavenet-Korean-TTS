@@ -1,0 +1,64 @@
+TensorFlow 2.0 Upgrade Script
+-----------------------------
+Converted 1 files
+Detected 6 issues that require attention
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+File: tacotron2.py
+--------------------------------------------------------------------------------
+tacotron2.py:44:31: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+tacotron2.py:53:35: WARNING: tf.nn.embedding_lookup requires manual check. `partition_strategy` has been removed from tf.nn.embedding_lookup.  The 'div' strategy will be used by default.
+tacotron2.py:57:38: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+tacotron2.py:59:32: WARNING: tf.nn.embedding_lookup requires manual check. `partition_strategy` has been removed from tf.nn.embedding_lookup.  The 'div' strategy will be used by default.
+tacotron2.py:173:20: WARNING: Using member tf.contrib.seq2seq.dynamic_decode in deprecated module tf.contrib.seq2seq. (Manual edit required) tf.contrib.seq2seq.* have been migrated to `tfa.seq2seq.*` in TensorFlow Addons. Please see https://github.com/tensorflow/addons for more info.
+tacotron2.py:173:20: ERROR: Using member tf.contrib.seq2seq.dynamic_decode in deprecated module tf.contrib. tf.contrib.seq2seq.dynamic_decode cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
+================================================================================
+Detailed log follows:
+
+================================================================================
+--------------------------------------------------------------------------------
+Processing file 'tacotron2.py'
+ outputting to 'tacotron2.py'
+--------------------------------------------------------------------------------
+
+39:13: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+44:31: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+44:31: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+44:131: INFO: tf.truncated_normal_initializer requires manual check. Initializers no longer have the dtype argument in the constructor or partition_info argument in the __call__ method.
+The calls have been converted to compat.v1 for safety (even though they may already have been correct).
+44:131: INFO: Renamed 'tf.truncated_normal_initializer' to 'tf.compat.v1.truncated_normal_initializer'
+53:35: WARNING: tf.nn.embedding_lookup requires manual check. `partition_strategy` has been removed from tf.nn.embedding_lookup.  The 'div' strategy will be used by default.
+57:38: WARNING: tf.get_variable requires manual check. tf.get_variable returns ResourceVariables by default in 2.0, which have well-defined semantics and are stricter about shapes. You can disable this behavior by passing use_resource=False, or by calling tf.compat.v1.disable_resource_variables().
+57:38: INFO: Renamed 'tf.get_variable' to 'tf.compat.v1.get_variable'
+57:151: INFO: tf.truncated_normal_initializer requires manual check. Initializers no longer have the dtype argument in the constructor or partition_info argument in the __call__ method.
+The calls have been converted to compat.v1 for safety (even though they may already have been correct).
+57:151: INFO: Renamed 'tf.truncated_normal_initializer' to 'tf.compat.v1.truncated_normal_initializer'
+59:32: WARNING: tf.nn.embedding_lookup requires manual check. `partition_strategy` has been removed from tf.nn.embedding_lookup.  The 'div' strategy will be used by default.
+61:49: INFO: Renamed 'tf.layers.dense' to 'tf.compat.v1.layers.dense'
+76:13: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+82:20: INFO: Renamed 'tf.layers.conv1d' to 'tf.compat.v1.layers.conv1d'
+83:20: INFO: Renamed 'tf.layers.batch_normalization' to 'tf.compat.v1.layers.batch_normalization'
+84:20: INFO: Renamed 'tf.layers.dropout' to 'tf.compat.v1.layers.dropout'
+97:30: INFO: Renamed 'tf.nn.bidirectional_dynamic_rnn' to 'tf.compat.v1.nn.bidirectional_dynamic_rnn'
+106:13: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+134:27: INFO: Renamed 'tf.contrib.rnn.MultiRNNCell' to 'tf.compat.v1.nn.rnn_cell.MultiRNNCell'
+173:20: WARNING: Using member tf.contrib.seq2seq.dynamic_decode in deprecated module tf.contrib.seq2seq. (Manual edit required) tf.contrib.seq2seq.* have been migrated to `tfa.seq2seq.*` in TensorFlow Addons. Please see https://github.com/tensorflow/addons for more info.
+173:20: ERROR: Using member tf.contrib.seq2seq.dynamic_decode in deprecated module tf.contrib. tf.contrib.seq2seq.dynamic_decode cannot be converted automatically. tf.contrib will not be distributed with TensorFlow 2.0, please consider an alternative in non-contrib TensorFlow, a community-maintained repository such as tensorflow/addons, or fork the required code.
+183:20: INFO: Renamed 'tf.layers.conv1d' to 'tf.compat.v1.layers.conv1d'
+184:20: INFO: Renamed 'tf.layers.batch_normalization' to 'tf.compat.v1.layers.batch_normalization'
+185:20: INFO: Renamed 'tf.layers.dropout' to 'tf.compat.v1.layers.dropout'
+187:23: INFO: Renamed 'tf.layers.dense' to 'tf.compat.v1.layers.dense'
+196:29: INFO: Renamed 'tf.layers.dense' to 'tf.compat.v1.layers.dense'
+215:28: INFO: Renamed 'tf.trainable_variables' to 'tf.compat.v1.trainable_variables'
+236:13: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+238:21: INFO: Renamed 'tf.squared_difference' to 'tf.math.squared_difference'
+239:20: INFO: Renamed 'tf.squared_difference' to 'tf.math.squared_difference'
+278:13: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+290:24: INFO: Renamed 'tf.train.AdamOptimizer' to 'tf.compat.v1.train.AdamOptimizer'
+297:41: INFO: Renamed 'tf.get_collection' to 'tf.compat.v1.get_collection'
+297:59: INFO: Renamed 'tf.GraphKeys' to 'tf.compat.v1.GraphKeys'
+318:13: INFO: tf.train.exponential_decay requires manual check. To use learning rate decay schedules with TensorFlow 2.0, switch to the schedules in `tf.keras.optimizers.schedules`.
+
+318:13: INFO: Renamed 'tf.train.exponential_decay' to 'tf.compat.v1.train.exponential_decay'
+--------------------------------------------------------------------------------
+

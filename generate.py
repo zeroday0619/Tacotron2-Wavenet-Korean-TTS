@@ -120,7 +120,7 @@ def main():
 
     with tf.device('/cpu:0'):  # cpu가 더 빠르다. gpu로 설정하면 Error. tf.device 없이 하면 더 느려진다.
 
-        sess = tf.Session()
+        sess = tf.compat.v1.Session()
         scalar_input = hparams.scalar_input
         net = WaveNetModel(
             batch_size=config.batch_size,
@@ -142,12 +142,12 @@ def main():
             train_mode=False)   # train 단계에서는 global_condition_cardinality를 AudioReader에서 파악했지만, 여기서는 넣어주어야 함
             
         if scalar_input:
-            samples = tf.placeholder(tf.float32,shape=[net.batch_size,None])
+            samples = tf.compat.v1.placeholder(tf.float32,shape=[net.batch_size,None])
         else:
-            samples = tf.placeholder(tf.int32,shape=[net.batch_size,None])  # samples: mu_law_encode로 변환된 것. one-hot으로 변환되기 전. (batch_size, 길이)
+            samples = tf.compat.v1.placeholder(tf.int32,shape=[net.batch_size,None])  # samples: mu_law_encode로 변환된 것. one-hot으로 변환되기 전. (batch_size, 길이)
     
         # local condition이 (N,T,num_mels) 여야 하지만, 길이 1까지로 들어가야하기 때무넹, (N,1,num_mels) --> squeeze하면 (N,num_mels)
-        upsampled_local_condition = tf.placeholder(tf.float32,shape=[net.batch_size,hparams.num_mels])  
+        upsampled_local_condition = tf.compat.v1.placeholder(tf.float32,shape=[net.batch_size,hparams.num_mels])  
         
         next_sample = net.predict_proba_incremental(samples,upsampled_local_condition, [config.gc_id]*net.batch_size)  # Fast Wavenet Generation Algorithm-1611.09482 algorithm 적용
         
@@ -156,11 +156,11 @@ def main():
         mel_input = np.load(config.mel)
         sample_size = mel_input.shape[0] * hparams.hop_size
         mel_input = np.tile(mel_input,(config.batch_size,1,1))
-        with tf.variable_scope('wavenet',reuse=tf.AUTO_REUSE):
+        with tf.compat.v1.variable_scope('wavenet',reuse=tf.compat.v1.AUTO_REUSE):
             upsampled_local_condition_data = net.create_upsample(mel_input,upsample_type=hparams.upsample_type)
             
-        var_list = [var for var in tf.global_variables() if 'queue' not in var.name ]
-        saver = tf.train.Saver(var_list)
+        var_list = [var for var in tf.compat.v1.global_variables() if 'queue' not in var.name ]
+        saver = tf.compat.v1.train.Saver(var_list)
         print('Restoring model from {}'.format(config.checkpoint_dir))
         
         load(saver, sess, config.checkpoint_dir)

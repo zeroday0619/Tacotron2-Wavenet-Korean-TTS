@@ -21,7 +21,7 @@ from datasets import DataFeederWavenet
 from hparams import hparams
 from utils import validate_directories,load,save,infolog,get_tensors_in_checkpoint_file,build_tensors_in_checkpoint_file,plot,audio
 
-tf.logging.set_verbosity(tf.logging.ERROR)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 EPSILON = 0.001
 log = infolog.log
 
@@ -178,7 +178,7 @@ def main():
     coord = tf.train.Coordinator()
     num_speakers = len(config.data_dir)
     # Load raw waveform from VCTK corpus.
-    with tf.name_scope('create_inputs'):
+    with tf.compat.v1.name_scope('create_inputs'):
         # Allow silence trimming to be skipped by specifying a threshold near
         # zero.
         silence_threshold = hparams.silence_threshold if hparams.silence_threshold > EPSILON else None
@@ -202,22 +202,22 @@ def main():
 
 
 
-    run_metadata = tf.RunMetadata()
+    run_metadata = tf.compat.v1.RunMetadata()
 
     # Set up session
-    sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))  # log_device_placement=False --> cpu/gpu 자동 배치.
-    init = tf.global_variables_initializer()
+    sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(log_device_placement=False))  # log_device_placement=False --> cpu/gpu 자동 배치.
+    init = tf.compat.v1.global_variables_initializer()
     sess.run(init)
     
     # Saver for storing checkpoints of the model.
-    saver = tf.train.Saver(var_list=tf.global_variables(), max_to_keep=hparams.max_checkpoints)  # 최대 checkpoint 저장 갯수 지정
+    saver = tf.compat.v1.train.Saver(var_list=tf.compat.v1.global_variables(), max_to_keep=hparams.max_checkpoints)  # 최대 checkpoint 저장 갯수 지정
     
     try:
         start_step = load(saver, sess, restore_from)  # checkpoint load
         if is_overwritten_training or start_step is None:
             # The first training step will be saved_global_step + 1,
             # therefore we put -1 here for new or overwritten trainings.
-            zero_step_assign = tf.assign(global_step, 0)
+            zero_step_assign = tf.compat.v1.assign(global_step, 0)
             sess.run(zero_step_assign)
             start_step=0
     except:
@@ -234,17 +234,17 @@ def main():
     net_test = create_network(hparams,1,num_speakers,is_training=False)
   
     if hparams.scalar_input:
-        samples = tf.placeholder(tf.float32,shape=[net_test.batch_size,None])
+        samples = tf.compat.v1.placeholder(tf.float32,shape=[net_test.batch_size,None])
         waveform = 2*np.random.rand(net_test.batch_size).reshape(net_test.batch_size,-1)-1
         
     else:
-        samples = tf.placeholder(tf.int32,shape=[net_test.batch_size,None])  # samples: mu_law_encode로 변환된 것. one-hot으로 변환되기 전. (batch_size, 길이)
+        samples = tf.compat.v1.placeholder(tf.int32,shape=[net_test.batch_size,None])  # samples: mu_law_encode로 변환된 것. one-hot으로 변환되기 전. (batch_size, 길이)
         waveform = np.random.randint(hparams.quantization_channels,size=net_test.batch_size).reshape(net_test.batch_size,-1)
-    upsampled_local_condition = tf.placeholder(tf.float32,shape=[net_test.batch_size,hparams.num_mels])  
+    upsampled_local_condition = tf.compat.v1.placeholder(tf.float32,shape=[net_test.batch_size,hparams.num_mels])  
     
         
 
-    speaker_id = tf.placeholder(tf.int32,shape=[net_test.batch_size])  
+    speaker_id = tf.compat.v1.placeholder(tf.int32,shape=[net_test.batch_size])  
     next_sample = net_test.predict_proba_incremental(samples,upsampled_local_condition,speaker_id)  # Fast Wavenet Generation Algorithm-1611.09482 algorithm 적용
 
         
@@ -259,7 +259,7 @@ def main():
     mel_input_test, speaker_id_test = sess.run([reader_test.local_condition,reader_test.speaker_id])
 
 
-    with tf.variable_scope('wavenet',reuse=tf.AUTO_REUSE):
+    with tf.compat.v1.variable_scope('wavenet',reuse=tf.compat.v1.AUTO_REUSE):
         upsampled_local_condition_data = net_test.create_upsample(mel_input_test,upsample_type=hparams.upsample_type)
         upsampled_local_condition_data_ = sess.run(upsampled_local_condition_data)  # upsampled_local_condition_data_ 을 feed_dict로 placehoder인 upsampled_local_condition에 넣어준다.
 
@@ -276,7 +276,7 @@ def main():
             if hparams.store_metadata and step % 50 == 0:
                 # Slow run that stores extra information for debugging.
                 log('Storing metadata')
-                run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+                run_options = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
                 step, loss_value, _ = sess.run([global_step, net.loss, net.optimize],options=run_options,run_metadata=run_metadata)
 
                 tl = timeline.Timeline(run_metadata.step_stats)

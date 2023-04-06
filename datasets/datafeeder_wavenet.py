@@ -70,16 +70,16 @@ class DataFeederWavenet(threading.Thread):
         self.path_dict = get_path_dict(self.data_dirs,self.sample_size)# receptive_field 보다 작은 것을 버리고, 나머지만 돌려준다.
         
         self._placeholders = [
-            tf.placeholder(tf.float32, shape=[None,None,1],name='input_wav'),
-            tf.placeholder(tf.float32, shape=[None,None,hparams.num_mels],name='local_condition')
+            tf.compat.v1.placeholder(tf.float32, shape=[None,None,1],name='input_wav'),
+            tf.compat.v1.placeholder(tf.float32, shape=[None,None,hparams.num_mels],name='local_condition')
         ]    
         dtypes = [tf.float32, tf.float32]
     
         if self.gc_enable:
-            self._placeholders.append(tf.placeholder(tf.int32, shape=[None],name='speaker_id'))
+            self._placeholders.append(tf.compat.v1.placeholder(tf.int32, shape=[None],name='speaker_id'))
             dtypes.append(tf.int32)
  
-        queue = tf.FIFOQueue(self.queue_size, dtypes, name='input_queue')
+        queue = tf.queue.FIFOQueue(self.queue_size, dtypes, name='input_queue')
         self.enqueue = queue.enqueue(self._placeholders)
         
         if self.gc_enable:
@@ -176,9 +176,9 @@ if __name__ == '__main__':
     mydatafeed =  DataFeederWavenet(coord,data_dirs,batch_size=5,receptive_field=1200, gc_enable=True, queue_size=8)
     
     
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         try:
-            sess.run(tf.global_variables_initializer())
+            sess.run(tf.compat.v1.global_variables_initializer())
             step = 0
             mydatafeed.start_in_session(sess,step) 
             
@@ -200,4 +200,3 @@ if __name__ == '__main__':
         except Exception as e:
             print('finally')
             coord.request_stop(e)
-    

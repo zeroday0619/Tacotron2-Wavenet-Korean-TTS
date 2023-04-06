@@ -1,0 +1,36 @@
+TensorFlow 2.0 Upgrade Script
+-----------------------------
+Converted 1 files
+Detected 0 issues that require attention
+--------------------------------------------------------------------------------
+================================================================================
+Detailed log follows:
+
+================================================================================
+--------------------------------------------------------------------------------
+Processing file 'train_vocoder.py'
+ outputting to 'train_vocoder.py'
+--------------------------------------------------------------------------------
+
+24:0: INFO: Renamed 'tf.logging.set_verbosity' to 'tf.compat.v1.logging.set_verbosity'
+24:25: INFO: Renamed 'tf.logging.ERROR' to 'tf.compat.v1.logging.ERROR'
+181:9: INFO: `name` passed to `name_scope`. Because you may be re-entering an existing scope, it is not safe to convert automatically,  the v2 name_scope does not support re-entering scopes by name.
+
+181:9: INFO: Renamed 'tf.name_scope' to 'tf.compat.v1.name_scope'
+205:19: INFO: Renamed 'tf.RunMetadata' to 'tf.compat.v1.RunMetadata'
+208:11: INFO: Renamed 'tf.Session' to 'tf.compat.v1.Session'
+208:29: INFO: Renamed 'tf.ConfigProto' to 'tf.compat.v1.ConfigProto'
+209:11: INFO: Renamed 'tf.global_variables_initializer' to 'tf.compat.v1.global_variables_initializer'
+213:12: INFO: Renamed 'tf.train.Saver' to 'tf.compat.v1.train.Saver'
+213:36: INFO: Renamed 'tf.global_variables' to 'tf.compat.v1.global_variables'
+220:31: INFO: Renamed 'tf.assign' to 'tf.compat.v1.assign'
+237:18: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+241:18: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+243:32: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+247:17: INFO: Renamed 'tf.placeholder' to 'tf.compat.v1.placeholder'
+262:9: INFO: Renamed 'tf.variable_scope' to 'tf.compat.v1.variable_scope'
+262:43: INFO: Renamed 'tf.AUTO_REUSE' to 'tf.compat.v1.AUTO_REUSE'
+279:30: INFO: Renamed 'tf.RunOptions' to 'tf.compat.v1.RunOptions'
+279:56: INFO: Renamed 'tf.RunOptions' to 'tf.compat.v1.RunOptions'
+--------------------------------------------------------------------------------
+

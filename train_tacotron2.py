@@ -24,7 +24,7 @@ from datasets.datafeeder_tacotron2 import DataFeederTacotron2
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-tf.logging.set_verbosity(tf.logging.ERROR)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 log = infolog.log
 
 
@@ -37,33 +37,33 @@ def get_git_commit():
 
 
 def add_stats(model, model2=None, scope_name='train'):
-    with tf.variable_scope(scope_name) as scope:
+    with tf.compat.v1.variable_scope(scope_name) as scope:
         summaries = [
-                tf.summary.scalar('loss_mel', model.mel_loss),
-                tf.summary.scalar('loss_linear', model.linear_loss),
-                tf.summary.scalar('loss', model.loss_without_coeff),
+                tf.compat.v1.summary.scalar('loss_mel', model.mel_loss),
+                tf.compat.v1.summary.scalar('loss_linear', model.linear_loss),
+                tf.compat.v1.summary.scalar('loss', model.loss_without_coeff),
         ]
 
         if scope_name == 'train':
             gradient_norms = [tf.norm(grad) for grad in model.gradients if grad is not None]
 
             summaries.extend([
-                    tf.summary.scalar('learning_rate', model.learning_rate),
-                    tf.summary.scalar('max_gradient_norm', tf.reduce_max(gradient_norms)),
+                    tf.compat.v1.summary.scalar('learning_rate', model.learning_rate),
+                    tf.compat.v1.summary.scalar('max_gradient_norm', tf.reduce_max(gradient_norms)),
             ])
 
     if model2 is not None:
-        with tf.variable_scope('gap_test-train') as scope:
+        with tf.compat.v1.variable_scope('gap_test-train') as scope:
             summaries.extend([
-                    tf.summary.scalar('loss_mel',
+                    tf.compat.v1.summary.scalar('loss_mel',
                             model.mel_loss - model2.mel_loss),
-                    tf.summary.scalar('loss_linear', 
+                    tf.compat.v1.summary.scalar('loss_linear', 
                             model.linear_loss - model2.linear_loss),
-                    tf.summary.scalar('loss',
+                    tf.compat.v1.summary.scalar('loss',
                             model.loss_without_coeff - model2.loss_without_coeff),
             ])
 
-    return tf.summary.merge(summaries)
+    return tf.compat.v1.summary.merge(summaries)
 
 
 def save_and_plot_fn(args, log_dir, step, loss, prefix):
@@ -116,7 +116,7 @@ def train(log_dir, config):
 
     # Set up DataFeeder:
     coord = tf.train.Coordinator()
-    with tf.variable_scope('datafeeder') as scope:
+    with tf.compat.v1.variable_scope('datafeeder') as scope:
         # DataFeeder의 6개 placeholder: train_feeder.inputs, train_feeder.input_lengths, train_feeder.loss_coeff, train_feeder.mel_targets, train_feeder.linear_targets, train_feeder.speaker_id
         train_feeder = DataFeederTacotron2(coord, data_dirs, hparams, config, 32,data_type='train', batch_size=config.batch_size)
         test_feeder = DataFeederTacotron2(coord, data_dirs, hparams, config, 8, data_type='test', batch_size=config.num_test)
@@ -125,7 +125,7 @@ def train(log_dir, config):
 
     global_step = tf.Variable(0, name='global_step', trainable=False)
 
-    with tf.variable_scope('model') as scope:
+    with tf.compat.v1.variable_scope('model') as scope:
         model = create_model(hparams)
         model.initialize(inputs=train_feeder.inputs, input_lengths=train_feeder.input_lengths,num_speakers=num_speakers,speaker_id=train_feeder.speaker_id,
                          mel_targets=train_feeder.mel_targets, linear_targets=train_feeder.linear_targets,is_training=True,
@@ -135,7 +135,7 @@ def train(log_dir, config):
         model.add_optimizer(global_step)
         train_stats = add_stats(model, scope_name='train') # legacy
 
-    with tf.variable_scope('model', reuse=True) as scope:
+    with tf.compat.v1.variable_scope('model', reuse=True) as scope:
         test_model = create_model(hparams)
         test_model.initialize(inputs=test_feeder.inputs, input_lengths=test_feeder.input_lengths,num_speakers=num_speakers,speaker_id=test_feeder.speaker_id,
                          mel_targets=test_feeder.mel_targets, linear_targets=test_feeder.linear_targets,is_training=False,
@@ -148,17 +148,17 @@ def train(log_dir, config):
     step = 0
     time_window = ValueWindow(100)
     loss_window = ValueWindow(100)
-    saver = tf.train.Saver(max_to_keep=None, keep_checkpoint_every_n_hours=2)
+    saver = tf.compat.v1.train.Saver(max_to_keep=None, keep_checkpoint_every_n_hours=2)
 
-    sess_config = tf.ConfigProto(log_device_placement=False,allow_soft_placement=True)
+    sess_config = tf.compat.v1.ConfigProto(log_device_placement=False,allow_soft_placement=True)
     sess_config.gpu_options.allow_growth=True
 
     # Train!
     #with tf.Session(config=sess_config) as sess:
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         try:
-            summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
-            sess.run(tf.global_variables_initializer())
+            summary_writer = tf.compat.v1.summary.FileWriter(log_dir, sess.graph)
+            sess.run(tf.compat.v1.global_variables_initializer())
 
             if config.load_path:
                 # Restore from a checkpoint if the user requested it.
@@ -170,7 +170,7 @@ def train(log_dir, config):
                 saver.restore(sess, restore_path)
                 log('Initialized from checkpoint: %s at commit: %s' % (restore_path, commit), slack=True)
 
-                zero_step_assign = tf.assign(global_step, 0)
+                zero_step_assign = tf.compat.v1.assign(global_step, 0)
                 sess.run(zero_step_assign)
 
                 start_step = sess.run(global_step)
@@ -273,7 +273,7 @@ def main():
     log_path = os.path.join(config.model_dir, 'train.log')
     infolog.init(log_path, config.model_dir, config.slack_url)
 
-    tf.set_random_seed(config.random_seed)
+    tf.compat.v1.set_random_seed(config.random_seed)
     print(config.data_paths)
 
 

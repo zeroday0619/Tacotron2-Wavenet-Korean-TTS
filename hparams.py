@@ -2,8 +2,9 @@
 
 import tensorflow as tf
 import numpy as np
+from tensorboard.plugins.hparams import HParams
 
-hparams = tf.contrib.training.HParams(
+hparams = HParams(
     name = "Tacotron-2",
     
     # tacotron hyper parameter

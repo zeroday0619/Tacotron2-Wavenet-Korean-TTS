@@ -121,12 +121,12 @@ class DataFeederTacotron2(threading.Thread):
         # be able to feed different sized batches at eval time.
 
         self._placeholders = [
-            tf.placeholder(tf.int32, [None, None], 'inputs'),
-            tf.placeholder(tf.int32, [None], 'input_lengths'),
-            tf.placeholder(tf.float32, [None], 'loss_coeff'),
-            tf.placeholder(tf.float32, [None, None, hparams.num_mels], 'mel_targets'),
-            tf.placeholder(tf.float32, [None, None, hparams.num_freq], 'linear_targets'),
-            tf.placeholder(tf.float32, [None, None], 'stop_token_targets')
+            tf.compat.v1.placeholder(tf.int32, [None, None], 'inputs'),
+            tf.compat.v1.placeholder(tf.int32, [None], 'input_lengths'),
+            tf.compat.v1.placeholder(tf.float32, [None], 'loss_coeff'),
+            tf.compat.v1.placeholder(tf.float32, [None, None, hparams.num_mels], 'mel_targets'),
+            tf.compat.v1.placeholder(tf.float32, [None, None, hparams.num_freq], 'linear_targets'),
+            tf.compat.v1.placeholder(tf.float32, [None, None], 'stop_token_targets')
         ]
 
         # Create queue for buffering data:
@@ -135,11 +135,11 @@ class DataFeederTacotron2(threading.Thread):
         self.is_multi_speaker = len(self.data_dirs) > 1
 
         if self.is_multi_speaker:
-            self._placeholders.append( tf.placeholder(tf.int32, [None], 'speaker_id'),)
+            self._placeholders.append( tf.compat.v1.placeholder(tf.int32, [None], 'speaker_id'),)
             dtypes.append(tf.int32)
 
         num_worker = 8 if self.data_type == 'train' else 1
-        queue = tf.FIFOQueue(num_worker, dtypes, name='input_queue')
+        queue = tf.queue.FIFOQueue(num_worker, dtypes, name='input_queue')
 
         self._enqueue_op = queue.enqueue(self._placeholders)
 
@@ -351,9 +351,9 @@ if __name__ == '__main__':
 
     
     
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         try:
-            sess.run(tf.global_variables_initializer())
+            sess.run(tf.compat.v1.global_variables_initializer())
             step = 0
             mydatafeed.start_in_session(sess,step) 
             

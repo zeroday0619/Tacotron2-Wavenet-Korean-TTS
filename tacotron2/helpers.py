@@ -3,13 +3,13 @@
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.seq2seq import Helper
+from tensorflow_addons.seq2seq import Helper
 
 
 # Adapted from tf.contrib.seq2seq.GreedyEmbeddingHelper
 class TacoTestHelper(Helper):
     def __init__(self, batch_size, output_dim, r):
-        with tf.name_scope('TacoTestHelper'):
+        with tf.compat.v1.name_scope('TacoTestHelper'):
             self._batch_size = batch_size
             self._output_dim = output_dim
             self._end_token = tf.tile([0.0], [output_dim * r])  # [0.0,0.0,...]
@@ -34,7 +34,7 @@ class TacoTestHelper(Helper):
 
     def next_inputs(self, time, outputs, state, sample_ids, name=None):
         '''Stop on EOS. Otherwise, pass the last output as the next input and pass through state.'''
-        with tf.name_scope('TacoTestHelper'):
+        with tf.compat.v1.name_scope('TacoTestHelper'):
             stop_token_preds = tf.nn.sigmoid(outputs[:,-self._reduction_factor:])
             finished = tf.reduce_any(tf.cast(tf.round(stop_token_preds), tf.bool),axis=1)
             # Feed last output frame as next input. outputs is [N, output_dim * r]
@@ -48,7 +48,7 @@ class TacoTrainingHelper(Helper):
         # inputs is [N, T_in], targets is [N, T_out, D]
         # output_dim = hp.num_mels = 80
         # r = hp.reduction_factor = 4 or 5
-        with tf.name_scope('TacoTrainingHelper'):
+        with tf.compat.v1.name_scope('TacoTrainingHelper'):
             self._batch_size = tf.shape(targets)[0]
             self._output_dim = output_dim
 
@@ -79,7 +79,7 @@ class TacoTrainingHelper(Helper):
         return tf.tile([0], [self._batch_size])  # Return all 0; we ignore them
 
     def next_inputs(self, time, outputs, state, sample_ids, name=None):  # time에 해당하는 input을 만들어 return해야 한다.
-        with tf.name_scope(name or 'TacoTrainingHelper'):
+        with tf.compat.v1.name_scope(name or 'TacoTrainingHelper'):
             finished = (time + 1 >= self._lengths)
 
             next_inputs = self._targets[:, time, :]
